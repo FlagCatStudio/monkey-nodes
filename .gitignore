@@ -1,0 +1,10 @@
+#
+# GitIgnore file for Monkey Nodes
+#
+
+# Python stuff
+__pycache__
+
+# Emacs stuff
+*~
+\#*
