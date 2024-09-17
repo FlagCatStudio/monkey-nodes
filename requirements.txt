@@ -2,4 +2,4 @@
 # Requirements for Monkey Nodes
 #
 
-# Wow, much empty !
+pillow

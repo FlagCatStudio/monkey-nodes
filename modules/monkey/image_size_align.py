@@ -1,7 +1,11 @@
-import PIL
+from PIL import Image, ImageOps
 
-def compute_padding(size, modulus):
+from .helpers import tensor_to_pil, pil_to_tensor
+
+
+def _compute_padding(size, modulus):
     return (modulus - (size % modulus)) % modulus
+
 
 class ImageSizeAlign:
     """
@@ -39,61 +43,82 @@ class ImageSizeAlign:
         The entry point method. The name of this method must be the same as the value of property `FUNCTION`.
         For example, if `FUNCTION = "execute"` then this method's name must be `execute`, if `FUNCTION = "foo"` then it must be `foo`.
     """
+
     def __init__(self):
         pass
 
     @classmethod
     def INPUT_TYPES(s):
         """
-            Return a dictionary which contains config for all input fields.
-            Some types (string): "MODEL", "VAE", "CLIP", "CONDITIONING", "LATENT", "IMAGE", "INT", "STRING", "FLOAT".
-            Input types "INT", "STRING" or "FLOAT" are special values for fields on the node.
-            The type can be a list for selection.
+        Return a dictionary which contains config for all input fields.
+        Some types (string): "MODEL", "VAE", "CLIP", "CONDITIONING", "LATENT", "IMAGE", "INT", "STRING", "FLOAT".
+        Input types "INT", "STRING" or "FLOAT" are special values for fields on the node.
+        The type can be a list for selection.
 
-            Returns: `dict`:
-                - Key input_fields_group (`string`): Can be either required, hidden or optional. A node class must have property `required`
-                - Value input_fields (`dict`): Contains input fields config:
-                    * Key field_name (`string`): Name of a entry-point method's argument
-                    * Value field_config (`tuple`):
-                        + First value is a string indicate the type of field or a list for selection.
-                        + Second value is a config for type "INT", "STRING" or "FLOAT".
+        Returns: `dict`:
+            - Key input_fields_group (`string`): Can be either required, hidden or optional. A node class must have property `required`
+            - Value input_fields (`dict`): Contains input fields config:
+                * Key field_name (`string`): Name of a entry-point method's argument
+                * Value field_config (`tuple`):
+                    + First value is a string indicate the type of field or a list for selection.
+                    + Second value is a config for type "INT", "STRING" or "FLOAT".
         """
         return {
             "required": {
                 "image": ("IMAGE",),
-                "modulus": ("INT", {
-                    "default": 8,
-                    "min": 0, #Minimum value
-                    "max": 4096, #Maximum value
-                    "step": 1, #Slider's step
-                    "display": "number", # Cosmetic only: display as "number" or "slider"
-                    "lazy": False # Will only be evaluated if check_lazy_status requires it
-                }),
-                "padding_color": ("STRING", {
-                    "multiline": False, #True if you want the field to look like the one on the ClipTextEncode node
-                    "default": "#ffffff",
-                    "lazy": False
-                }),
+                "modulus": (
+                    "INT",
+                    {
+                        "default": 8,
+                        "min": 0,  # Minimum value
+                        "max": 4096,  # Maximum value
+                        "step": 1,  # Slider's step
+                        "display": "number",  # Cosmetic only: display as "number" or "slider"
+                        "lazy": False,  # Will only be evaluated if check_lazy_status requires it
+                    },
+                ),
+                "padding_color": (
+                    "STRING",
+                    {
+                        "multiline": False,  # True if you want the field to look like the one on the ClipTextEncode node
+                        "default": "#ffffff",
+                        "lazy": False,
+                    },
+                ),
             },
         }
 
-    RETURN_TYPES = ("IMAGE", 'INT', 'INT')
-    RETURN_NAMES = ("padded_image", 'padding_width', 'padding_height')
+    RETURN_TYPES = ("IMAGE", "INT", "INT", 'INT', 'INT', 'INT', 'INT')
+    RETURN_NAMES = (
+        "padded_image",
+        'original_width', 'original_height',
+        'padded_width', 'padded_height',
+        "padding_width", "padding_height",
+    )
     CATEGORY = "image/transform"
 
     FUNCTION = "perform"
 
-    def perform(self, image, modulus, color):
-        width, height = image.size
+    def perform(self, *, image, modulus, padding_color):
+        pil_image = tensor_to_pil(image)
+        width, height = pil_image.size
 
-        padding_width = compute_padding(width, modulus)
-        padding_height = compute_padding(height, modulus)
+        padding_width = _compute_padding(width, modulus)
+        padding_height = _compute_padding(height, modulus)
+        padded_width = width + padding_width
+        padded_height = height + padding_height
 
-        padded_image = PIL.ImageOps.pad(
-            image=image,
-            size=(width + padding_width, height + padding_height),
-            method=PIL.Image.Resampling.NEAREST,
-            color=color
+        padded_image = ImageOps.pad(
+            image=pil_image,
+            size=(padded_width, padded_height),
+            method=Image.Resampling.NEAREST,
+            color=padding_color,
+            centering=(1,1)
         )
 
-        return (padded_image, padding_width, padding_height)
+        return (
+            pil_to_tensor(padded_image),
+            width, height,
+            padded_width, padded_height,
+            padding_width, padding_height,
+        )
