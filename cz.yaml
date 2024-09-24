@@ -6,7 +6,7 @@ commitizen:
   name: cz_conventional_commits
   tag_format: v$version
   update_changelog_on_bump: true
-  version: 0.1.0-rc0
+  version: 0.1.0-rc1
   version_files:
   - modules/monkey/version.py
   version_scheme: semver
