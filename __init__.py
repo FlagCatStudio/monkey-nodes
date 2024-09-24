@@ -14,7 +14,6 @@ import monkey
 
 print(f"### Loading: Monkey Nodes ({monkey.VERSION})")
 
-
 NODE_CLASS_MAPPINGS = {
     "ImageSizeAlign": monkey.ImageSizeAlign,
 }
