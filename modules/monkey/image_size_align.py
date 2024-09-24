@@ -88,12 +88,15 @@ class ImageSizeAlign:
             },
         }
 
-    RETURN_TYPES = ("IMAGE", "INT", "INT", 'INT', 'INT', 'INT', 'INT')
+    RETURN_TYPES = ("IMAGE", "INT", "INT", "INT", "INT", "INT", "INT")
     RETURN_NAMES = (
         "padded_image",
-        'original_width', 'original_height',
-        'padded_width', 'padded_height',
-        "padding_width", "padding_height",
+        "original_width",
+        "original_height",
+        "padded_width",
+        "padded_height",
+        "padding_width",
+        "padding_height",
     )
     CATEGORY = "image/transform"
 
@@ -108,17 +111,18 @@ class ImageSizeAlign:
         padded_width = width + padding_width
         padded_height = height + padding_height
 
-        padded_image = ImageOps.pad(
+        padded_image = ImageOps.expand(
             image=pil_image,
-            size=(padded_width, padded_height),
-            method=Image.Resampling.NEAREST,
-            color=padding_color,
-            centering=(1,1)
+            border=(padding_width, padding_height, 0, 0),
+            fill=padding_color,
         )
 
         return (
             pil_to_tensor(padded_image),
-            width, height,
-            padded_width, padded_height,
-            padding_width, padding_height,
+            width,
+            height,
+            padded_width,
+            padded_height,
+            padding_width,
+            padding_height,
         )
