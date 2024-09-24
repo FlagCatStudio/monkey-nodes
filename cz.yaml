@@ -1,12 +1,12 @@
 ---
 commitizen:
+  annotated_tag: true
+  changelog_start_rev: 777290e82741750cefaaa633350728cfdb0973ae
   major_version_zero: true
   name: cz_conventional_commits
   tag_format: v$version
   update_changelog_on_bump: true
-  changelog_start_rev: 777290e82741750cefaaa633350728cfdb0973ae
-  version: 0.0.1
-  version_scheme: semver
-  annotated_tag: true
+  version: 0.1.0-rc0
   version_files:
-    - modules/monkey/version.py
+  - modules/monkey/version.py
+  version_scheme: semver
